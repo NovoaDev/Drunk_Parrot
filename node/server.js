@@ -19,7 +19,7 @@ app.use(express.static(__dirname + '/view/public'))
 app.use(bParser.urlencoded({extended: true}))
 
 let bVolando
-
+let oNav
 //---------------------------------------------------------------------- IO
 parser.on('open', function () {
   	console.log('Se encuentra abierta la conexion')
@@ -28,11 +28,21 @@ parser.on('open', function () {
 parser.on('data', function (data) {
   selectorDeVar(data)
 })
+//--------------------------------------------------------------------- navdata drone
+
+drone.on('navdata', function (navdata) {
+  oNav = navdata
+})
 
 //--------------------------------------------------------------------- GET
 
 app.get('/', function (req, res) {
-  res.send(bateria())
+  res.send(oNav)
+})
+
+app.get('/test', function (req, res) {
+  res.send(oNav.droneState)
+  console.log(oNav.droneState.flying)
 })
 
 //-------------------------------------------------------------------- Control de drone
@@ -97,6 +107,8 @@ function selectorDeVar (sDatosArduino) {
   let iLargoDatos = sDatos.length
   let sDatosFinal = sDatos.substring(4, iLargoDatos)
 
+  console.log(sDatosArduino)
+
   if (sDatosPrefijo == "#00#") { 
     if (sDatosFinal == "0") { 
       despegar()
@@ -110,7 +122,6 @@ function selectorDeVar (sDatosArduino) {
   }
 
   if (sDatosPrefijo == "#01#") { 
-    console.log(sDatosFinal)
     // X = arriba abajo(arriba =1023, abajo 0, medio 510)
     sDatosFinal = parseInt(sDatosFinal)
     if (sDatosFinal <= 400) { 
