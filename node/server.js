@@ -38,6 +38,7 @@ drone.on('navdata', function (navdata) {
 
 app.get('/', function (req, res) {
   res.send(oNav)
+  drone.animate('flipRight', 500);
 })
 
 app.get('/test', function (req, res) {
