@@ -4,6 +4,12 @@ const SocketIO = require('socket.io')
 const SerialPort = require('serialport')
 const bParser = require('body-parser')
 const arDrone = require("ar-drone")
+
+//Modelos datos drone
+const DemoModel = require('./modelos/demoModel')
+const DroneStateModel = require('./modelos/droneStateModel')
+const VisionDetecModel = require('./modelos/visionDetectModel')
+
 const drone = arDrone.createClient()
 
 const app = express()
@@ -14,12 +20,15 @@ const ReadLine = SerialPort.parsers.Readline
 const port = new SerialPort("COM8", { baudRate: 9600 })
 const parser = port.pipe(new ReadLine({ delimiter: '\r\n' }))
 
+let oDemoModel = new DemoModel()
+let oDroneStateModel = new DroneStateModel()
+let oVisionDetecModel = new VisionDetecModel()
+
 //Middleware`s
 app.use(express.static(__dirname + '/view/public'))
 app.use(bParser.urlencoded({extended: true}))
 
 let bVolando
-let oNav
 //---------------------------------------------------------------------- IO
 parser.on('open', function () {
   	console.log('Se encuentra abierta la conexion')
@@ -31,19 +40,108 @@ parser.on('data', function (data) {
 //--------------------------------------------------------------------- navdata drone
 
 drone.on('navdata', function (navdata) {
-  oNav = navdata
+
+/*  
+  //---------------------------------------------- Demo
+  oDemoModel.setControlState(navdata.demo.controlState)               
+  oDemoModel.setFlyState(navdata.demo.flyState)                   
+  oDemoModel.setBatteryPercentage(navdata.demo.batteryPercentage)
+
+  oDemoModel.setRotationFrontBack(navdata.demo.rotation.frontBack)         
+  oDemoModel.setRotationPitch(navdata.demo.rotation.pitch)              
+  oDemoModel.setRotationTheta(navdata.demo.rotation.theta)              
+  oDemoModel.setRotationY(navdata.demo.rotation.y)                  
+  oDemoModel.setRotationLeftRight(navdata.demo.rotation.leftRight)          
+  oDemoModel.setRotationRoll(navdata.demo.rotation.roll)               
+  oDemoModel.setRotationPhi(navdata.demo.rotation.phi)                
+  oDemoModel.setRrotationX(navdata.demo.rotation.x)                 
+  oDemoModel.setRrotationClockwise(navdata.demo.rotation.clockwise)         
+  oDemoModel.setRrotationYaw(navdata.demo.rotation.yaw)               
+  oDemoModel.setRotationPsi(navdata.demo.rotation.psi)                
+  oDemoModel.setRotationZ(navdata.demo.rotation.z)                  
+  
+  oDemoModel.setFrontBackDegrees(navdata.demo.frontBackDegrees)           
+  oDemoModel.setLeftRightDegrees(navdata.demo.leftRightDegrees)           
+  oDemoModel.setClockwiseDegrees(navdata.demo.clockwiseDegrees)           
+  oDemoModel.setAltitude(navdata.demo.altitude)                   
+  oDemoModel.setAltitudeMeters(navdata.demo.altitudeMeters)
+
+  oDemoModel.setVelocityX(navdata.demo.velocity.x)                  
+  oDemoModel.setVelocityY(navdata.demo.velocity.y)                  
+  oDemoModel.setVelocityZ(navdata.demo.velocity.z)
+
+  oDemoModel.setXVelocity(navdata.demo.xVelocity)                  
+  oDemoModel.setYVelocity(navdata.demo.yVelocity)                  
+  oDemoModel.setZVelocity(navdata.demo.zVelocity)                  
+  oDemoModel.setFrameIndex(navdata.demo.frameIndex)
+
+  //Contienen objetos JSON
+  oDemoModel.setDetectionCamera(navdata.demo.detection.camera)            
+  oDemoModel.setDetectionTagIndex(navdata.demo.detection.tagIndex)          
+  oDemoModel.setDroneCamera(navdata.demo.drone.camera)
+
+  //---------------------------------------------- droneState
+  oDroneStateModel.setFlying(navdata.droneState.flying)
+  oDroneStateModel.setVideoEnabled(navdata.droneState.videoEnabled)               
+  oDroneStateModel.setVisionEnabled(navdata.droneState.visionEnabled)              
+  oDroneStateModel.setControlAlgorithm(navdata.droneState.controlAlgorithm)           
+  oDroneStateModel.setAltitudeControlAlgorithm(navdata.droneState.altitudeControlAlgorithm)   
+  oDroneStateModel.setStartButtonState(navdata.droneState.startButtonState)           
+  oDroneStateModel.setControlCommandAck(navdata.droneState.controlCommandAck)          
+  oDroneStateModel.setCameraReady(navdata.droneState.cameraReady)                
+  oDroneStateModel.setTravellingEnabled(navdata.droneState.travellingEnabled)          
+  oDroneStateModel.setUsbReady(navdata.droneState.usbReady)                   
+  oDroneStateModel.setNavdataDemo(navdata.droneState.navdataDemo)                
+  oDroneStateModel.setNavdataBootstrap(navdata.droneState.navdataBootstrap)           
+  oDroneStateModel.setMotorProblem(navdata.droneState.motorProblem)               
+  oDroneStateModel.setCommunicationLost(navdata.droneState.communicationLost)          
+  oDroneStateModel.setSoftwareFault(navdata.droneState.softwareFault)              
+  oDroneStateModel.setLowBattery(navdata.droneState.lowBattery)                 
+  oDroneStateModel.setUserEmergencyLanding(navdata.droneState.userEmergencyLanding)       
+  oDroneStateModel.setTimerElapsed(navdata.droneState.timerElapsed)               
+  oDroneStateModel.setMagnometerNeedsCalibration(navdata.droneState.MagnometerNeedsCalibration) 
+  oDroneStateModel.setAnglesOutOfRange(navdata.droneState.anglesOutOfRange)           
+  oDroneStateModel.setTooMuchWind(navdata.droneState.tooMuchWind)                
+  oDroneStateModel.setUltrasonicSensorDeaf(navdata.droneState.ultrasonicSensorDeaf)       
+  oDroneStateModel.setCutoutDetected(navdata.droneState.cutoutDetected)             
+  oDroneStateModel.setPicVersionNumberOk(navdata.droneState.picVersionNumberOk)         
+  oDroneStateModel.setAtCodecThreadOn(navdata.droneState.atCodecThreadOn)            
+  oDroneStateModel.setNavdataThreadOn(navdata.droneState.navdataThreadOn)            
+  oDroneStateModel.setVideoThreadOn(navdata.droneState.videoThreadOn)              
+  oDroneStateModel.setAcquisitionThreadOn(navdata.droneState.acquisitionThreadOn)        
+  oDroneStateModel.setControlWatchdogDelay(navdata.droneState.controlWatchdogDelay)       
+  oDroneStateModel.setAdcWatchdogDelay(navdata.droneState.adcWatchdogDelay)           
+  oDroneStateModel.setComWatchdogProblem(navdata.droneState.comWatchdogProblem)         
+  oDroneStateModel.setEmergencyLanding(navdata.droneState.emergencyLanding)
+
+  /*
+  //---------------------------------------------- VisionDetected
+  oVisionDetecModel.setNbDetected()
+  oVisionDetecModel.setTypex()                  
+  oVisionDetecModel.setXc()
+  oVisionDetecModel.setYc()
+  oVisionDetecModel.setWidthx()
+  oVisionDetecModel.setHeightx()
+  oVisionDetecModel.setDis()
+  oVisionDetecModel.setOrientationAngle()
+  oVisionDetecModel.setRotation()
+  oVisionDetecModel.setTranslation()
+  oVisionDetecModel.setCameraSource()
+  */
 })
 
 //--------------------------------------------------------------------- GET
 
 app.get('/', function (req, res) {
-  res.send(oNav)
-  drone.animate('flipRight', 500);
+  res.send("navdata")
+  console.log(oDemoModel)
+  console.log(oDroneStateModel)
+  console.log(oVisionDetecModel)
+  //drone.animate('flipRight', 500);
 })
 
 app.get('/test', function (req, res) {
-  res.send(oNav.droneState)
-  console.log(oNav.droneState.flying)
+  res.send("test")
 })
 
 //-------------------------------------------------------------------- Control de drone
