@@ -7,10 +7,6 @@
   "license": "MIT",
   "dependencies": {
     "ar-drone": "^0.3.3",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
-    "express-session": "^1.15.6",
-    "serialport": "^7.0.2",
-    "socket.io": "^2.1.1"
+    "serialport": "^7.0.2"
   }
 }
